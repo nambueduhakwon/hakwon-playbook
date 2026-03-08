@@ -155,7 +155,7 @@
 
 <div id="app">
   <div class="header">
-    <div class="header-title">📚 학원 운영 시뮬레이션</div>
+    <div class="header-title">📚 학원 점검 플레이북</div>
     <div class="header-badge" id="hdr-month"></div>
   </div>
 
@@ -194,6 +194,9 @@
     <div class="result-breakdown" id="r-bd"></div>
     <a id="video-link" href="#" target="_blank" class="video-link-btn" style="display:none">
       <span class="video-icon">▶</span>관련 내용(영상) 보러가기
+    </a>
+    <a id="guide-link" href="#" target="_blank" class="video-link-btn" style="display:none;border-color:rgba(16,185,129,0.4);color:#10b981;">
+      <span class="video-icon" style="background:#10b981">📄</span>안내사항 보러가기
     </a>
     <div class="result-btns">
       <button class="result-btn secondary" onclick="initGame()">다시하기</button>
@@ -335,9 +338,18 @@ function render(){
 
 function renderStory(s){
   document.getElementById('spk').textContent=s.speaker||'나레이터';
+  const nextS=SC.steps[st+1];
   typeText(document.getElementById('dtxt'),s.text,()=>{
-    document.getElementById('choices').innerHTML='';
-    const nb=document.getElementById('next-btn');nb.textContent='계속 ▶';nb.style.display='block';
+    if(nextS&&nextS.type==='choice'){
+      const wrap=document.getElementById('choices');wrap.innerHTML='';wrap.style.display='';
+      nextS.choices.forEach((c,i)=>{
+        const b=document.createElement('button');
+        b.className='choice-btn fade-in';b.style.animationDelay=i*0.08+'s';
+        b.innerHTML=`<span class="choice-label">${c.label}</span><span>${c.text}</span>`;
+        b.onclick=()=>{st++;pick(c.correct,nextS.feedback,b,wrap);};
+        wrap.appendChild(b);
+      });
+    }
   });
 }
 
@@ -391,6 +403,8 @@ function result(){
   document.getElementById('r-bd').innerHTML=html;
   const vl=document.getElementById('video-link');
   if(SC.video_url){vl.href=SC.video_url;vl.style.display='flex';}else vl.style.display='none';
+  const gl=document.getElementById('guide-link');
+  if(SC.guide_url){gl.href=SC.guide_url;gl.style.display='flex';}else gl.style.display='none';
   showScr('result-screen');
 }
 
