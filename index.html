@@ -87,11 +87,14 @@
   .survey-header p{font-size:0.8rem;color:var(--text-dim);margin-top:5px;}
   .survey-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
   .survey-q{font-size:0.88rem;font-weight:500;margin-bottom:12px;line-height:1.5;}
-  .likert{display:flex;gap:8px;}
-  .likert-btn{flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:700;transition:all 0.15s;color:var(--text-dim);}
+  .likert{display:flex;gap:6px;flex-wrap:wrap;}
+  .likert-btn{flex:1;min-width:80px;padding:9px 6px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.15s;color:var(--text-dim);text-align:center;line-height:1.3;}
   .likert-btn.sel{background:rgba(245,158,11,0.15);border-color:var(--accent);color:var(--accent);}
-  .nps-scale{display:flex;gap:3px;}
-  .nps-btn{flex:1;padding:8px 0;background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.72rem;font-weight:700;transition:all 0.15s;color:var(--text-dim);text-align:center;}
+  .op-type{display:flex;flex-direction:column;gap:6px;}
+  .op-btn{width:100%;padding:11px 14px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;transition:all 0.15s;color:var(--text-dim);text-align:left;}
+  .op-btn.sel{background:rgba(245,158,11,0.15);border-color:var(--accent);color:var(--accent);}
+  .nps-scale{display:flex;gap:6px;flex-wrap:wrap;}
+  .nps-btn{flex:1;min-width:80px;padding:9px 6px;background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.15s;color:var(--text-dim);text-align:center;line-height:1.3;}
   .nps-btn.sel{background:rgba(59,130,246,0.15);border-color:var(--accent2);color:var(--accent2);}
   .survey-textarea{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:inherit;font-size:0.83rem;resize:none;height:88px;outline:none;transition:border-color 0.2s;}
   .survey-textarea:focus{border-color:rgba(245,158,11,0.4);}
@@ -171,15 +174,19 @@
       <p>소중한 의견이 더 나은 교육 콘텐츠를 만듭니다</p>
     </div>
     <div class="survey-card">
-      <div class="survey-q">1. 이 시뮬레이션이 실제 학원 운영에 도움이 될 것 같나요?</div>
+      <div class="survey-q">1. 운영 유형을 선택해주세요</div>
+      <div class="op-type" id="q0-wrap"></div>
+    </div>
+    <div class="survey-card">
+      <div class="survey-q">2. 이 시뮬레이션이 실제 운영에 도움이 될 것 같나요?</div>
       <div class="likert" id="q1-wrap"></div>
     </div>
     <div class="survey-card">
-      <div class="survey-q">2. 이 콘텐츠를 다른 학원 운영자에게 추천하고 싶으신가요?<br><small style="color:var(--text-dim);font-size:0.73rem">0(전혀) ~ 10(매우 추천)</small></div>
+      <div class="survey-q">3. 이 콘텐츠를 다른 분들께 추천하고 싶으신가요?</div>
       <div class="nps-scale" id="q2-wrap"></div>
     </div>
     <div class="survey-card">
-      <div class="survey-q">3. 자유롭게 의견을 남겨주세요</div>
+      <div class="survey-q">4. 자유롭게 의견을 남겨주세요</div>
       <textarea class="survey-textarea" id="q3-txt" placeholder="느낀 점, 개선 의견, 추가로 다뤘으면 하는 상황 등..."></textarea>
     </div>
     <button class="survey-submit" id="sub-btn" onclick="submitSurvey()">제출하기</button>
@@ -204,7 +211,7 @@
 // ══════════════════════════════════════
 const CFG = {
   // Google Apps Script 웹앱 URL (설정 가이드 참고)
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby1l6277ZqMV_tfybukReZAN-KUJ11LaLT6QGfCSUyoLhF5cJMYDMZOGMuvu59HTiKv/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzLUYhjeAs6kgLWbQU8_ererFgmon1WhJzbl4EZpQpzJr07PvFglQN4VdUqS_oL2y8/exec',
   // true: 구글 시트 연동 / false: 아래 DEMO 시나리오 사용
   USE_SHEETS: true,
 };
@@ -250,7 +257,7 @@ const DEMO = {
 };
 
 // ══════════════════════════════════════
-let SC=null, st=0, sc=0, maxSc=0, ans=[], sv={q1:null,q2:null,q3:''};
+let SC=null, st=0, sc=0, maxSc=0, ans=[], sv={q0:null,q1:null,q2:null,q3:''};
 
 window.addEventListener('load',()=>{
   setTimeout(()=>{
@@ -354,10 +361,27 @@ function result(){
 }
 
 function showSurvey(){
+  // Q0 운영 유형
+  const q0=document.getElementById('q0-wrap');q0.innerHTML='';
+  ['학원 운영자','교습소 운영자','개인과외교습자','그 외'].forEach(v=>{
+    const b=document.createElement('button');b.className='op-btn';b.textContent=v;
+    b.onclick=()=>{q0.querySelectorAll('.op-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q0=v;};
+    q0.appendChild(b);
+  });
+  // Q1 도움도
   const q1=document.getElementById('q1-wrap');q1.innerHTML='';
-  [1,2,3,4,5].forEach(v=>{const b=document.createElement('button');b.className='likert-btn';b.textContent=v;b.onclick=()=>{q1.querySelectorAll('.likert-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q1=v;};q1.appendChild(b);});
+  ['매우 불만족','불만족','보통','만족','매우 만족'].forEach(v=>{
+    const b=document.createElement('button');b.className='likert-btn';b.textContent=v;
+    b.onclick=()=>{q1.querySelectorAll('.likert-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q1=v;};
+    q1.appendChild(b);
+  });
+  // Q2 추천도
   const q2=document.getElementById('q2-wrap');q2.innerHTML='';
-  for(let v=0;v<=10;v++){const b=document.createElement('button');b.className='nps-btn';b.textContent=v;b.onclick=()=>{q2.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q2=v;};q2.appendChild(b);}
+  ['매우 비추천','비추천','보통','추천','매우 추천'].forEach(v=>{
+    const b=document.createElement('button');b.className='nps-btn';b.textContent=v;
+    b.onclick=()=>{q2.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q2=v;};
+    q2.appendChild(b);
+  });
   showScr('survey-screen');
 }
 
@@ -366,7 +390,7 @@ async function submitSurvey(){
   const btn=document.getElementById('sub-btn');btn.disabled=true;btn.textContent='저장 중...';
   const payload={action:'saveSurvey',scenario_month:SC.month,title:SC.title,score:sc,maxScore:maxSc,
     grade:document.getElementById('r-grade').textContent,answers:JSON.stringify(ans),
-    q1:sv.q1,q2:sv.q2,q3:sv.q3,submitted_at:new Date().toLocaleString('ko-KR')};
+    q0:sv.q0,q1:sv.q1,q2:sv.q2,q3:sv.q3,submitted_at:new Date().toLocaleString('ko-KR')};
   try{
     if(CFG.USE_SHEETS&&CFG.SCRIPT_URL.indexOf('YOUR_SCRIPT_ID')<0){
       await fetch(CFG.SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
