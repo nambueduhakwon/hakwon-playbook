@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>학원 운영 실전 시뮬레이션</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:#0a0e1a; --panel:#111827; --panel2:#1a2235;
+    --accent:#f59e0b; --accent2:#3b82f6;
+    --danger:#ef4444; --success:#10b981;
+    --text:#e2e8f0; --text-dim:#94a3b8;
+    --border:rgba(255,255,255,0.08);
+    --glow:0 0 20px rgba(245,158,11,0.3);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans KR',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;}
+  .bg-fx{position:fixed;inset:0;pointer-events:none;z-index:0;background:radial-gradient(ellipse at 20% 50%,rgba(245,158,11,0.04) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(59,130,246,0.04) 0%,transparent 60%);}
+  #loading{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity 0.5s;}
+  .loader-logo{font-size:1.8rem;font-weight:700;color:var(--accent);letter-spacing:3px;}
+  .loader-bar{width:180px;height:3px;background:var(--panel2);border-radius:2px;overflow:hidden;}
+  .loader-fill{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));animation:load 2s ease forwards;}
+  .loader-txt{font-size:0.72rem;color:var(--text-dim);letter-spacing:2px;}
+  @keyframes load{to{width:100%;}}
+  #app{position:relative;z-index:1;width:100%;max-width:640px;margin:0 auto;padding:16px;min-height:100vh;display:none;flex-direction:column;}
+  .header{padding:14px 0 8px;display:flex;align-items:center;justify-content:space-between;}
+  .header-title{font-size:1rem;font-weight:700;color:var(--accent);letter-spacing:1px;}
+  .header-badge{font-size:0.65rem;padding:3px 10px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:20px;color:var(--accent);}
+  .scene-wrap{position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;margin:10px 0;background:var(--panel2);border:1px solid var(--border);box-shadow:0 8px 32px rgba(0,0,0,0.5);}
+  .scene-img{width:100%;height:100%;object-fit:cover;display:none;}
+  .scene-overlay{position:absolute;inset:0;background:linear-gradient(to bottom,transparent 40%,rgba(10,14,26,0.85) 100%);}
+  .scene-ph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:3rem;opacity:0.15;}
+  .scene-loc{position:absolute;bottom:12px;left:12px;font-size:0.72rem;color:rgba(255,255,255,0.9);background:rgba(0,0,0,0.5);backdrop-filter:blur(8px);padding:4px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.1);}
+  .scene-step{position:absolute;top:12px;right:12px;font-size:0.65rem;color:var(--accent);background:rgba(0,0,0,0.6);padding:3px 10px;border-radius:20px;border:1px solid rgba(245,158,11,0.3);}
+  .score-bar{display:flex;align-items:center;padding:9px 14px;background:var(--panel);border:1px solid var(--border);border-radius:8px;margin-bottom:10px;font-size:0.78rem;gap:10px;}
+  .score-label{color:var(--text-dim);}
+  .score-prog{flex:1;height:4px;background:var(--panel2);border-radius:2px;overflow:hidden;}
+  .score-fill{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width 0.5s ease;}
+  .score-val{font-size:1rem;font-weight:700;color:var(--accent);}
+  .dialog-box{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px 18px;margin-bottom:10px;min-height:76px;}
+  .dialog-speaker{font-size:0.7rem;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
+  .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:blink 1s ease infinite;}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
+  .dialog-text{font-size:0.93rem;line-height:1.75;color:var(--text);}
+  .cursor{display:inline-block;animation:blink 0.8s step-end infinite;}
+  .choices{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+  .choice-btn{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:inherit;font-size:0.88rem;cursor:pointer;text-align:left;transition:all 0.2s;display:flex;align-items:flex-start;gap:10px;}
+  .choice-btn:hover{border-color:rgba(245,158,11,0.4);transform:translateX(4px);}
+  .choice-btn.correct{border-color:var(--success);background:rgba(16,185,129,0.1);}
+  .choice-btn.wrong{border-color:var(--danger);background:rgba(239,68,68,0.1);}
+  .choice-btn.disabled{pointer-events:none;}
+  .choice-label{font-weight:700;color:var(--accent);min-width:18px;font-size:0.85rem;}
+  .feedback-card{border-radius:12px;padding:15px 17px;margin-bottom:10px;display:none;border:1px solid;animation:su 0.3s ease;}
+  @keyframes su{from{transform:translateY(8px);opacity:0}to{transform:translateY(0);opacity:1}}
+  .feedback-card.correct{background:rgba(16,185,129,0.08);border-color:rgba(16,185,129,0.3);}
+  .feedback-card.wrong{background:rgba(239,68,68,0.08);border-color:rgba(239,68,68,0.3);}
+  .fb-header{font-size:0.85rem;font-weight:700;margin-bottom:7px;}
+  .feedback-card.correct .fb-header{color:var(--success);}
+  .feedback-card.wrong .fb-header{color:var(--danger);}
+  .fb-detail{font-size:0.8rem;color:var(--text-dim);line-height:1.6;}
+  .penalty-badge{display:inline-block;margin-top:8px;background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:var(--danger);font-size:0.72rem;font-weight:700;padding:3px 10px;border-radius:20px;}
+  .next-btn{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#d97706);border:none;border-radius:10px;color:#0a0e1a;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;display:none;transition:all 0.2s;box-shadow:var(--glow);}
+  .next-btn:hover{transform:translateY(-2px);}
+  .result-screen,.survey-screen,.done-screen,.error-screen{display:none;}
+  .result-screen{text-align:center;padding:16px 0;}
+  .result-title{font-size:0.72rem;color:var(--text-dim);letter-spacing:3px;margin-bottom:4px;}
+  .result-grade{font-size:5rem;font-weight:700;line-height:1;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:8px 0;}
+  .result-msg{font-size:0.9rem;color:var(--text);margin:10px 0 16px;line-height:1.6;}
+  .result-breakdown{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px;text-align:left;}
+  .rb-title{font-size:0.68rem;color:var(--text-dim);letter-spacing:2px;margin-bottom:10px;}
+  .rb-item{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:0.82rem;}
+  .rb-item:last-child{border-bottom:none;}
+  .rb-label{color:var(--text-dim);}
+  .rb-val{font-weight:700;}
+  .ok{color:var(--success);} .fail{color:var(--danger);}
+  .video-link-btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:13px;background:var(--panel2);border:1px solid rgba(59,130,246,0.4);border-radius:10px;color:var(--accent2);font-size:0.9rem;font-weight:600;text-decoration:none;transition:all 0.2s;margin-bottom:10px;}
+  .video-link-btn:hover{background:rgba(59,130,246,0.1);border-color:var(--accent2);transform:translateY(-2px);}
+  .video-icon{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--accent2);color:white;font-size:0.6rem;}
+  .result-btns{display:flex;gap:10px;}
+  .result-btn{flex:1;padding:12px;border-radius:10px;border:none;font-family:inherit;font-size:0.88rem;font-weight:700;cursor:pointer;transition:all 0.2s;}
+  .result-btn.primary{background:linear-gradient(135deg,var(--accent),#d97706);color:#0a0e1a;box-shadow:var(--glow);}
+  .result-btn.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--border);}
+  .result-btn:hover{transform:translateY(-2px);}
+  .survey-header{text-align:center;padding:18px 0 14px;}
+  .survey-header h2{font-size:1.3rem;font-weight:700;color:var(--accent);letter-spacing:1px;}
+  .survey-header p{font-size:0.8rem;color:var(--text-dim);margin-top:5px;}
+  .survey-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
+  .survey-q{font-size:0.88rem;font-weight:500;margin-bottom:12px;line-height:1.5;}
+  .likert{display:flex;gap:8px;}
+  .likert-btn{flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.9rem;font-weight:700;transition:all 0.15s;color:var(--text-dim);}
+  .likert-btn.sel{background:rgba(245,158,11,0.15);border-color:var(--accent);color:var(--accent);}
+  .nps-scale{display:flex;gap:3px;}
+  .nps-btn{flex:1;padding:8px 0;background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.72rem;font-weight:700;transition:all 0.15s;color:var(--text-dim);text-align:center;}
+  .nps-btn.sel{background:rgba(59,130,246,0.15);border-color:var(--accent2);color:var(--accent2);}
+  .survey-textarea{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:inherit;font-size:0.83rem;resize:none;height:88px;outline:none;transition:border-color 0.2s;}
+  .survey-textarea:focus{border-color:rgba(245,158,11,0.4);}
+  .survey-submit{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#d97706);border:none;border-radius:10px;color:#0a0e1a;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:var(--glow);margin-top:4px;}
+  .survey-submit:hover{transform:translateY(-2px);}
+  .survey-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
+  .done-screen{text-align:center;padding:40px 16px;}
+  .done-icon{font-size:3.5rem;margin-bottom:14px;}
+  .done-title{font-size:1.5rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:10px;}
+  .done-msg{font-size:0.86rem;color:var(--text-dim);line-height:1.7;}
+  .error-screen{text-align:center;padding:60px 16px;}
+  .fade-in{animation:fi 0.4s ease;}
+  @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+  .shake{animation:sh 0.4s ease;}
+  @keyframes sh{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+  @media(max-width:480px){.result-grade{font-size:4rem;}.choice-btn{font-size:0.84rem;}}
+</style>
+</head>
+<body>
+<div class="bg-fx"></div>
+
+<div id="loading">
+  <div class="loader-logo">📚 HAKWON SIM</div>
+  <div class="loader-bar"><div class="loader-fill"></div></div>
+  <div class="loader-txt">시나리오 불러오는 중...</div>
+</div>
+
+<div id="app">
+  <div class="header">
+    <div class="header-title">📚 학원 운영 시뮬레이션</div>
+    <div class="header-badge" id="hdr-month"></div>
+  </div>
+
+  <div id="game-screen">
+    <div class="score-bar">
+      <span class="score-label">점수</span>
+      <div class="score-prog"><div class="score-fill" id="score-fill" style="width:100%"></div></div>
+      <span class="score-val" id="score-val">0</span>
+    </div>
+    <div class="scene-wrap" id="scene-wrap">
+      <div class="scene-ph" id="scene-ph">🏫</div>
+      <img class="scene-img" id="scene-img" alt="" onload="this.style.display='block';document.getElementById('scene-ph').style.display='none'">
+      <div class="scene-overlay"></div>
+      <div class="scene-loc" id="scene-loc"></div>
+      <div class="scene-step" id="scene-step"></div>
+    </div>
+    <div class="dialog-box">
+      <div class="dialog-speaker"><span class="dot"></span><span id="spk">나레이터</span></div>
+      <div class="dialog-text" id="dtxt"></div>
+    </div>
+    <div class="choices" id="choices"></div>
+    <div class="feedback-card" id="fb-card">
+      <div class="fb-header" id="fb-hdr"></div>
+      <div class="fb-detail" id="fb-det"></div>
+      <div id="penalty-area"></div>
+    </div>
+    <button class="next-btn" id="next-btn" onclick="nextStep()">다음 ▶</button>
+  </div>
+
+  <div class="result-screen" id="result-screen">
+    <div class="result-title">최종 결과</div>
+    <div class="result-grade" id="r-grade">S</div>
+    <div class="result-msg" id="r-msg"></div>
+    <div class="result-breakdown" id="r-bd"></div>
+    <a id="video-link" href="#" target="_blank" class="video-link-btn" style="display:none">
+      <span class="video-icon">▶</span>관련 내용(영상) 보러가기
+    </a>
+    <div class="result-btns">
+      <button class="result-btn secondary" onclick="initGame()">다시하기</button>
+      <button class="result-btn primary" onclick="showSurvey()">만족도 조사 →</button>
+    </div>
+  </div>
+
+  <div class="survey-screen" id="survey-screen">
+    <div class="survey-header">
+      <h2>만족도 조사</h2>
+      <p>소중한 의견이 더 나은 교육 콘텐츠를 만듭니다</p>
+    </div>
+    <div class="survey-card">
+      <div class="survey-q">1. 이 시뮬레이션이 실제 학원 운영에 도움이 될 것 같나요?</div>
+      <div class="likert" id="q1-wrap"></div>
+    </div>
+    <div class="survey-card">
+      <div class="survey-q">2. 이 콘텐츠를 다른 학원 운영자에게 추천하고 싶으신가요?<br><small style="color:var(--text-dim);font-size:0.73rem">0(전혀) ~ 10(매우 추천)</small></div>
+      <div class="nps-scale" id="q2-wrap"></div>
+    </div>
+    <div class="survey-card">
+      <div class="survey-q">3. 자유롭게 의견을 남겨주세요</div>
+      <textarea class="survey-textarea" id="q3-txt" placeholder="느낀 점, 개선 의견, 추가로 다뤘으면 하는 상황 등..."></textarea>
+    </div>
+    <button class="survey-submit" id="sub-btn" onclick="submitSurvey()">제출하기</button>
+  </div>
+
+  <div class="done-screen" id="done-screen">
+    <div class="done-icon">🎉</div>
+    <div class="done-title">참여 감사합니다!</div>
+    <div class="done-msg">응답이 성공적으로 저장되었습니다.<br>여러분의 의견이 더 나은 학원 운영 교육을 만드는 데 활용됩니다.</div>
+  </div>
+
+  <div class="error-screen" id="error-screen">
+    <div style="font-size:2.5rem;margin-bottom:12px">⚠️</div>
+    <div style="font-size:1.2rem;font-weight:700;color:var(--danger);margin-bottom:10px">시나리오 없음</div>
+    <div style="font-size:0.84rem;color:var(--text-dim);line-height:1.7" id="err-msg">현재 등록된 시나리오가 없습니다.</div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// ★ 설정 — 배포 전 여기만 수정하세요 ★
+// ══════════════════════════════════════
+const CFG = {
+  // Google Apps Script 웹앱 URL (설정 가이드 참고)
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby1l6277ZqMV_tfybukReZAN-KUJ11LaLT6QGfCSUyoLhF5cJMYDMZOGMuvu59HTiKv/exec',
+  // true: 구글 시트 연동 / false: 아래 DEMO 시나리오 사용
+  USE_SHEETS: false,
+};
+
+// ══════════════════════════════════════
+// 데모 시나리오
+// ══════════════════════════════════════
+const DEMO = {
+  month:'2025년 3월', title:'신규 학원 운영자 편',
+  video_url:'', // 실제 영상 URL 입력
+  steps:[
+    {type:'story',location:'📍 학원 등록 사무소 앞',speaker:'나레이터',image:'',
+     text:'드디어 학원등록증을 받았습니다! \'학원등록증 발급이 완료되었습니다.\' 이제 뭘 해야 할까요?'},
+    {type:'choice',location:'📍 학원 등록 사무소 앞',image:'',
+     question:'학원등록증을 받은 후 어떻게 하시겠어요?',
+     choices:[{label:'A',text:'집으로 곧장 가서 쉰다. 등록증만 받으면 끝!',correct:false},
+              {label:'B',text:'세무서에 가서 면허세를 납부한다.',correct:true}],
+     feedback:{correct:'✅ 정답! 학원 개설 후 30일 이내에 반드시 면허세를 납부해야 합니다.',
+               wrong:'❌ 아직 한 가지가 남았어요! 면허세를 세무서에 납부해야 합니다.',
+               detail:'학원을 개설한 날로부터 30일 이내에 관할 지자체에 면허세를 신고·납부해야 합니다. 미납 시 가산세가 부과됩니다.',
+               penalty:'면허세 미납 시 과태료 및 가산세'}},
+    {type:'story',location:'📍 학원 내 원장실',speaker:'나레이터',image:'',
+     text:'학원 안내문에 \'강사 등록\'이 필수라고 나와 있습니다. 원장님이 직접 강의도 할 예정인데…'},
+    {type:'choice',location:'📍 학원 내 원장실',image:'',
+     question:'원장인 나도 강사 등록을 해야 할까요?',
+     choices:[{label:'A',text:'원장으로 이미 신고했으니 자동 등록된 거겠지?',correct:false},
+              {label:'B',text:'원장이더라도 강의를 하려면 별도로 강사 등록을 해야 한다.',correct:true}],
+     feedback:{correct:'✅ 정답! 원장과 강사는 별개입니다. 강의를 하려면 강사 신고가 필수입니다.',
+               wrong:'❌ 원장과 강사는 별개! 강의를 하려면 강사 신고를 해야 해요.',
+               detail:'학원법 제6조에 따라 원장 자격과 강사 자격은 별개입니다. 원장이 강의하는 경우도 강사 등록을 해야 합니다.',
+               penalty:'⚠️ 5점 벌점 | 미등록 강사 적발 시 과태료'}},
+    {type:'story',location:'📍 학원 홍보물 제작',speaker:'나레이터',image:'',
+     text:'홍보 현수막에 \'합격률 100%!\' 문구를 넣으면 학부모들이 많이 올 것 같은데…'},
+    {type:'choice',location:'📍 학원 홍보물 제작',image:'',
+     question:'\'합격률 100%!\' 광고 문구를 사용해도 될까요?',
+     choices:[{label:'A',text:'효과적인 광고이니 사용해도 괜찮다.',correct:false},
+              {label:'B',text:'근거 없는 과장 광고는 학원법 위반이다.',correct:true}],
+     feedback:{correct:'✅ 정확합니다! 근거 없는 허위·과장 광고는 학원법에서 금지합니다.',
+               wrong:'❌ 이는 허위·과대 광고입니다! 실제 데이터 없이 100%를 사용하면 법 위반입니다.',
+               detail:'학원법 제13조에 의거, 거짓·과장 광고 및 소비자를 오인하게 할 광고는 금지됩니다.',
+               penalty:'⚠️ 10점 벌점 | 시정명령 → 반복 시 영업정지'}}
+  ]
+};
+
+// ══════════════════════════════════════
+let SC=null, st=0, sc=0, maxSc=0, ans=[], sv={q1:null,q2:null,q3:''};
+
+window.addEventListener('load',()=>{
+  setTimeout(()=>{
+    const lo=document.getElementById('loading');
+    lo.style.opacity='0';
+    setTimeout(()=>{lo.style.display='none'; load();},500);
+  },1900);
+});
+
+async function load(){
+  document.getElementById('app').style.display='flex';
+  if(!CFG.USE_SHEETS){SC=DEMO;initGame();return;}
+  try{
+    const r=await fetch(CFG.SCRIPT_URL+'?action=getScenario');
+    const d=await r.json();
+    if(d.success&&d.scenario){SC=d.scenario;initGame();}
+    else showErr(d.message||'등록된 시나리오가 없습니다.');
+  }catch(e){SC=DEMO;initGame();}
+}
+
+function initGame(){
+  document.getElementById('hdr-month').textContent=SC.month||'';
+  st=0;sc=0;ans=[];
+  maxSc=SC.steps.filter(s=>s.type==='choice').length*10;
+  updSc();showScr('game-screen');render();
+}
+
+function render(){
+  const s=SC.steps[st];
+  if(!s){result();return;}
+  document.getElementById('scene-step').textContent=`${st+1} / ${SC.steps.length}`;
+  const img=document.getElementById('scene-img'),ph=document.getElementById('scene-ph');
+  if(s.image){img.src=s.image;ph.style.display='none';}
+  else{img.style.display='none';ph.style.display='flex';}
+  const loc=document.getElementById('scene-loc');
+  loc.textContent=s.location||'';loc.style.display=s.location?'block':'none';
+  document.getElementById('fb-card').style.display='none';
+  document.getElementById('next-btn').style.display='none';
+  if(s.type==='story')renderStory(s);else renderChoice(s);
+}
+
+function renderStory(s){
+  document.getElementById('spk').textContent=s.speaker||'나레이터';
+  typeText(document.getElementById('dtxt'),s.text,()=>{
+    document.getElementById('choices').innerHTML='';
+    const nb=document.getElementById('next-btn');nb.textContent='계속 ▶';nb.style.display='block';
+  });
+}
+
+function renderChoice(s){
+  document.getElementById('spk').textContent='선택';
+  document.getElementById('dtxt').textContent=s.question;
+  const wrap=document.getElementById('choices');wrap.innerHTML='';
+  s.choices.forEach((c,i)=>{
+    const b=document.createElement('button');
+    b.className='choice-btn fade-in';b.style.animationDelay=i*0.08+'s';
+    b.innerHTML=`<span class="choice-label">${c.label}</span><span>${c.text}</span>`;
+    b.onclick=()=>pick(c.correct,s.feedback,b,wrap);
+    wrap.appendChild(b);
+  });
+}
+
+function pick(ok,fb,btn,wrap){
+  wrap.querySelectorAll('.choice-btn').forEach(b=>b.classList.add('disabled'));
+  btn.classList.add(ok?'correct':'wrong');
+  if(ok)sc+=10; ans.push({correct:ok}); updSc();
+  const card=document.getElementById('fb-card');
+  card.className='feedback-card '+(ok?'correct':'wrong');
+  document.getElementById('fb-hdr').textContent=ok?fb.correct:fb.wrong;
+  document.getElementById('fb-det').textContent=fb.detail||'';
+  document.getElementById('penalty-area').innerHTML=(!ok&&fb.penalty)?`<span class="penalty-badge">⚠️ ${fb.penalty}</span>`:'';
+  card.style.display='block';
+  if(!ok){document.getElementById('scene-wrap').classList.add('shake');setTimeout(()=>document.getElementById('scene-wrap').classList.remove('shake'),500);}
+  const isLast=st>=SC.steps.length-2;
+  const nb=document.getElementById('next-btn');nb.textContent=isLast?'결과 보기 ▶':'다음 상황 ▶';nb.style.display='block';
+}
+
+function nextStep(){
+  st++;document.getElementById('next-btn').style.display='none';
+  if(st>=SC.steps.length){result();return;}
+  render();
+}
+
+function result(){
+  const pct=maxSc>0?Math.round(sc/maxSc*100):100;
+  let g,m;
+  if(pct>=90){g='S';m='완벽합니다! 학원법을 정확히 이해하고 계십니다.';}
+  else if(pct>=70){g='A';m='우수합니다! 대부분 잘 대처하셨어요. 놓친 부분을 복습해 보세요.';}
+  else if(pct>=50){g='B';m='몇 가지 중요한 규정을 놓치셨네요. 한 번 더 확인해보시길 권장합니다.';}
+  else{g='C';m='학원 운영 전 관련 규정을 꼭 숙지해 주세요.';}
+  document.getElementById('r-grade').textContent=g;
+  document.getElementById('r-msg').textContent=m;
+  const cs=SC.steps.filter(s=>s.type==='choice');
+  let html='<div class="rb-title">상황별 결과</div>';
+  ans.forEach((a,i)=>{html+=`<div class="rb-item"><span class="rb-label">상황 ${i+1}</span><span class="rb-val ${a.correct?'ok':'fail'}">${a.correct?'✅ 정답':'❌ 오답'}</span></div>`;});
+  html+=`<div class="rb-item"><span class="rb-label">총점</span><span class="rb-val" style="color:var(--accent)">${sc} / ${maxSc}점</span></div>`;
+  document.getElementById('r-bd').innerHTML=html;
+  const vl=document.getElementById('video-link');
+  if(SC.video_url){vl.href=SC.video_url;vl.style.display='flex';}else vl.style.display='none';
+  showScr('result-screen');
+}
+
+function showSurvey(){
+  const q1=document.getElementById('q1-wrap');q1.innerHTML='';
+  [1,2,3,4,5].forEach(v=>{const b=document.createElement('button');b.className='likert-btn';b.textContent=v;b.onclick=()=>{q1.querySelectorAll('.likert-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q1=v;};q1.appendChild(b);});
+  const q2=document.getElementById('q2-wrap');q2.innerHTML='';
+  for(let v=0;v<=10;v++){const b=document.createElement('button');b.className='nps-btn';b.textContent=v;b.onclick=()=>{q2.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q2=v;};q2.appendChild(b);}
+  showScr('survey-screen');
+}
+
+async function submitSurvey(){
+  sv.q3=document.getElementById('q3-txt').value;
+  const btn=document.getElementById('sub-btn');btn.disabled=true;btn.textContent='저장 중...';
+  const payload={action:'saveSurvey',scenario_month:SC.month,title:SC.title,score:sc,maxScore:maxSc,
+    grade:document.getElementById('r-grade').textContent,answers:JSON.stringify(ans),
+    q1:sv.q1,q2:sv.q2,q3:sv.q3,submitted_at:new Date().toLocaleString('ko-KR')};
+  try{
+    if(CFG.USE_SHEETS&&CFG.SCRIPT_URL.indexOf('YOUR_SCRIPT_ID')<0){
+      await fetch(CFG.SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    }
+  }catch(e){}
+  showScr('done-screen');
+}
+
+function showScr(id){
+  ['game-screen','result-screen','survey-screen','done-screen','error-screen'].forEach(s=>{const el=document.getElementById(s);if(el)el.style.display='none';});
+  const t=document.getElementById(id);if(t){t.style.display='block';t.classList.add('fade-in');setTimeout(()=>t.classList.remove('fade-in'),400);}
+}
+function showErr(msg){document.getElementById('err-msg').innerHTML=msg;showScr('error-screen');}
+function updSc(){document.getElementById('score-val').textContent=sc;const p=maxSc>0?(sc/maxSc*100):100;document.getElementById('score-fill').style.width=Math.max(p,0)+'%';}
+function typeText(el,text,cb){
+  el.innerHTML='';let i=0;
+  el.onclick=()=>{el.innerHTML=text;i=text.length;el.onclick=null;if(cb)cb();};
+  function t(){if(i<text.length){el.innerHTML=text.slice(0,++i)+'<span class="cursor">|</span>';setTimeout(t,20);}else{el.innerHTML=text;if(cb)cb();}}
+  t();
+}
+</script>
+</body>
+</html>
