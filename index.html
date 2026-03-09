@@ -48,7 +48,7 @@
   .dialog-speaker{font-size:0.7rem;font-weight:700;color:var(--accent);letter-spacing:1px;margin-bottom:8px;display:flex;align-items:center;gap:6px;}
   .dot{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:blink 1s ease infinite;}
   @keyframes blink{0%,100%{opacity:1}50%{opacity:0.2}}
-  .dialog-text{font-size:0.93rem;line-height:1.75;color:var(--text);}
+  .dialog-text{font-size:0.93rem;line-height:1.75;color:var(--text);white-space:pre-line;}
   .cursor{display:inline-block;animation:blink 0.8s step-end infinite;}
   .choices{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
   .choice-btn{background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:13px 16px;color:var(--text);font-family:inherit;font-size:0.88rem;cursor:pointer;text-align:left;transition:all 0.2s;display:flex;align-items:flex-start;gap:10px;}
@@ -93,24 +93,28 @@
   .survey-header p{font-size:0.8rem;color:var(--text-dim);margin-top:5px;}
   .survey-card{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:10px;}
   .survey-q{font-size:0.88rem;font-weight:500;margin-bottom:12px;line-height:1.5;}
-  .likert{display:flex;gap:6px;flex-wrap:wrap;}
-  .likert-btn{flex:1;min-width:80px;padding:9px 6px;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.15s;color:var(--text-dim);text-align:center;line-height:1.3;}
-  .likert-btn.sel{background:rgba(245,158,11,0.15);border-color:var(--accent);color:var(--accent);}
   .op-type{display:flex;flex-direction:column;gap:6px;}
   .op-btn{width:100%;padding:11px 14px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:0.85rem;font-weight:500;transition:all 0.15s;color:var(--text-dim);text-align:left;}
   .op-btn.sel{background:rgba(245,158,11,0.15);border-color:var(--accent);color:var(--accent);}
-  .nps-scale{display:flex;gap:6px;flex-wrap:wrap;}
-  .nps-btn{flex:1;min-width:80px;padding:9px 6px;background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.15s;color:var(--text-dim);text-align:center;line-height:1.3;}
-  .nps-btn.sel{background:rgba(59,130,246,0.15);border-color:var(--accent2);color:var(--accent2);}
+  .scale-row{display:flex;align-items:center;gap:10px;}
+  .scale-end{font-size:0.72rem;color:var(--text-dim);white-space:nowrap;min-width:52px;}
+  .scale-end.right{text-align:right;}
+  .scale-nums{display:flex;flex:1;gap:6px;}
+  .scale-btn{flex:1;aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:var(--panel2);border:1px solid var(--border);border-radius:50%;cursor:pointer;font-size:0.9rem;font-weight:700;transition:all 0.15s;color:var(--text-dim);}
+  .scale-btn:hover{border-color:rgba(245,158,11,0.4);color:var(--accent);}
+  .scale-btn.sel{background:rgba(245,158,11,0.2);border-color:var(--accent);color:var(--accent);box-shadow:0 0 10px rgba(245,158,11,0.25);}
+  .scale-btn.sel-blue{background:rgba(59,130,246,0.2);border-color:var(--accent2);color:var(--accent2);box-shadow:0 0 10px rgba(59,130,246,0.25);}
+  .scale-btn.sel-blue:hover{border-color:var(--accent2);}
   .survey-textarea{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:inherit;font-size:0.83rem;resize:none;height:88px;outline:none;transition:border-color 0.2s;}
   .survey-textarea:focus{border-color:rgba(245,158,11,0.4);}
   .survey-submit{width:100%;padding:13px;background:linear-gradient(135deg,var(--accent),#d97706);border:none;border-radius:10px;color:#0a0e1a;font-family:inherit;font-size:0.95rem;font-weight:700;cursor:pointer;transition:all 0.2s;box-shadow:var(--glow);margin-top:4px;}
   .survey-submit:hover{transform:translateY(-2px);}
   .survey-submit:disabled{opacity:0.6;cursor:not-allowed;transform:none;}
   .done-screen{text-align:center;padding:40px 16px;}
-  .done-icon{font-size:3.5rem;margin-bottom:14px;}
-  .done-title{font-size:1.5rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:10px;}
-  .done-msg{font-size:0.86rem;color:var(--text-dim);line-height:1.7;}
+  .done-icon{font-size:3.5rem;margin-bottom:18px;}
+  .done-title{font-size:1.5rem;font-weight:700;color:var(--accent);letter-spacing:2px;margin-bottom:14px;}
+  .done-msg{font-size:0.86rem;color:var(--text-dim);line-height:1.7;margin-bottom:28px;}
+  .done-links{display:flex;flex-direction:column;gap:12px;}
   .error-screen{text-align:center;padding:60px 16px;}
   .fade-in{animation:fi 0.4s ease;}
   @keyframes fi{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
@@ -144,6 +148,58 @@
       overflow:hidden;
     }
     #right-panel .next-btn{margin-top:auto;}
+    /* 결과 화면 - 2열 */
+    .result-screen{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      height:calc(100vh - 56px);
+      padding:0;
+      text-align:left;
+    }
+    .result-left{
+      display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;
+      padding:48px 40px;
+      border-right:1px solid var(--border);
+    }
+    .result-right{
+      display:flex;flex-direction:column;justify-content:center;
+      padding:40px;gap:16px;overflow-y:auto;
+    }
+    .result-grade{font-size:9rem;}
+    .result-title{font-size:0.75rem;}
+    .result-msg{font-size:0.95rem;}
+
+    /* 만족도 조사 - 2열 그리드 */
+    .survey-screen{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+      padding:28px 40px;
+      height:calc(100vh - 56px);
+      overflow-y:auto;
+      align-content:start;
+    }
+    .survey-header{grid-column:1 / -1;}
+    .survey-submit{grid-column:1 / -1;margin-top:4px;}
+    .scale-btn{width:48px;height:48px;flex:none;font-size:0.85rem;aspect-ratio:auto;}
+    .scale-nums{flex:none;gap:12px;}
+    .scale-end{font-size:0.8rem;min-width:auto;white-space:nowrap;}
+    .scale-row{gap:10px;justify-content:center;}
+    .op-type{flex-direction:row;}
+    .op-btn{flex:1;text-align:center;font-size:0.72rem;padding:10px 6px;}
+
+    /* 완료 화면 */
+    .done-screen{
+      height:calc(100vh - 56px);
+      padding:60px 80px;
+      overflow-y:auto;
+      text-align:center;
+    }
+    .done-links{display:flex;gap:16px;width:100%;max-width:1200px;margin:32px auto 16px;}
+    .done-links .video-link-btn{flex:1;margin:0;}
+    .done-screen .result-btn{max-width:1200px;width:100%;margin:10px auto 0;display:block;}
+    .done-title{font-size:2rem;}
+    .done-msg{font-size:0.9rem;max-width:1200px;margin:0 auto;}
   }
 </style>
 </head>
@@ -168,7 +224,7 @@
       <img class="scene-img" id="scene-img" alt="" onload="this.style.display='block';document.getElementById('scene-ph').style.display='none'">
       <div class="scene-overlay"></div>
       <div class="scene-loc" id="scene-loc"></div>
-      <div class="scene-step" id="scene-step"></div>
+      <div class="scene-step" id="scene-step" style="display:none"></div>
     </div>
     <div id="right-panel">
       <div class="score-bar">
@@ -191,13 +247,17 @@
   </div>
 
   <div class="result-screen" id="result-screen">
-    <div class="result-title">최종 결과</div>
-    <div class="result-grade" id="r-grade">S</div>
-    <div class="result-msg" id="r-msg"></div>
-    <div class="result-breakdown" id="r-bd"></div>
-    <div style="font-size:1.1rem;color:var(--text-dim);text-align:center;margin-bottom:10px;line-height:1.6;">💡 만족도조사를 제출하면 관련 영상 및 안내를 확인할 수 있어요!</div>
-    <div class="result-btns">
-      <button class="result-btn primary" onclick="showSurvey()">만족도 조사 →</button>
+    <div class="result-left">
+      <div class="result-title">최종 결과</div>
+      <div class="result-grade" id="r-grade">S</div>
+      <div class="result-msg" id="r-msg"></div>
+    </div>
+    <div class="result-right">
+      <div class="result-breakdown" id="r-bd"></div>
+      <div style="font-size:0.82rem;color:var(--text-dim);text-align:center;margin-bottom:10px;line-height:1.6;">💡 만족도조사를 제출하면 관련 영상 및 안내를 확인할 수 있어요!</div>
+      <div class="result-btns">
+        <button class="result-btn primary" onclick="showSurvey()">만족도 조사 →</button>
+      </div>
     </div>
   </div>
 
@@ -229,13 +289,18 @@
     <div class="done-icon">🎉</div>
     <div class="done-title">참여 감사합니다!</div>
     <div class="done-msg">응답이 성공적으로 저장되었습니다.<br>보내주신 소중한 의견은 더 나은 학원 운영과 교육 서비스를 구축하는 데 적극 반영하겠습니다.</div>
-    <a id="video-link" href="#" target="_blank" class="video-link-btn" style="display:none;margin-top:20px">
-      <span class="video-icon">▶</span>관련 내용(영상) 보러가기
-    </a>
-    <a id="guide-link" href="#" target="_blank" class="video-link-btn" style="display:none;border-color:rgba(16,185,129,0.4);color:#10b981;">
-      <span class="video-icon" style="background:#10b981">📄</span>안내사항 보러가기
-    </a>
-    <button class="result-btn secondary" onclick="initGame()" style="width:100%;margin-top:10px;">다시하기</button>
+    <div class="done-links">
+      <a id="video-link" href="#" target="_blank" class="video-link-btn" style="display:none;">
+        <span class="video-icon">▶</span><span id="video-label-txt">관련 내용(영상) 보러가기</span>
+      </a>
+      <a id="guide-link" href="#" target="_blank" class="video-link-btn" style="display:none;border-color:rgba(16,185,129,0.4);color:#10b981;">
+        <span class="video-icon" style="background:#10b981">📄</span><span id="guide-label-txt">안내사항 보러가기</span>
+      </a>
+      <a id="guide-link2" href="#" target="_blank" class="video-link-btn" style="display:none;border-color:rgba(16,185,129,0.4);color:#10b981;">
+        <span class="video-icon" style="background:#10b981">📄</span><span id="guide-label2-txt">안내사항 보러가기</span>
+      </a>
+    </div>
+    <button class="result-btn primary" onclick="initGame()" style="width:100%;margin-top:10px;">다시하기</button>
   </div>
 
   <div class="error-screen" id="error-screen">
@@ -392,11 +457,11 @@ function nextStep(){
 }
 
 function result(){
-  const pct=maxSc>0?Math.round(sc/maxSc*100):100;
+  const correct=ans.filter(a=>a.correct).length;
   let g,m;
-  if(pct>=90){g='S';m='완벽합니다! 학원법을 정확히 이해하고 계십니다.';}
-  else if(pct>=70){g='A';m='우수합니다! 대부분 잘 대처하셨어요. 놓친 부분을 복습해 보세요.';}
-  else if(pct>=50){g='B';m='몇 가지 중요한 규정을 놓치셨네요. 한 번 더 확인해보시길 권장합니다.';}
+  if(correct>=3){g='S';m='완벽합니다! 학원법을 정확히 이해하고 계십니다.';}
+  else if(correct===2){g='A';m='우수합니다! 대부분 잘 대처하셨어요. 놓친 부분을 복습해 보세요.';}
+  else if(correct===1){g='B';m='몇 가지 중요한 규정을 놓치셨네요. 한 번 더 확인해보시길 권장합니다.';}
   else{g='C';m='학원 운영 전 관련 규정을 꼭 숙지해 주세요.';}
   document.getElementById('r-grade').textContent=g;
   document.getElementById('r-msg').textContent=m;
@@ -406,9 +471,11 @@ function result(){
   html+=`<div class="rb-item"><span class="rb-label">총점</span><span class="rb-val" style="color:var(--accent)">${sc} / ${maxSc}점</span></div>`;
   document.getElementById('r-bd').innerHTML=html;
   const vl=document.getElementById('video-link');
-  if(SC.video_url){vl.href=SC.video_url;vl.style.display='flex';}else vl.style.display='none';
+  if(SC.video_url){vl.href=SC.video_url;vl.style.display='flex';document.getElementById('video-label-txt').textContent=SC.video_label||'관련 내용(영상) 보러가기';}else vl.style.display='none';
   const gl=document.getElementById('guide-link');
-  if(SC.guide_url){gl.href=SC.guide_url;gl.style.display='flex';}else gl.style.display='none';
+  if(SC.guide_url){gl.href=SC.guide_url;gl.style.display='flex';document.getElementById('guide-label-txt').textContent=SC.guide_label||'안내사항 보러가기';}else gl.style.display='none';
+  const gl2=document.getElementById('guide-link2');
+  if(SC.guide_url2){gl2.href=SC.guide_url2;gl2.style.display='flex';document.getElementById('guide-label2-txt').textContent=SC.guide_label2||'안내사항 보러가기';}else gl2.style.display='none';
   showScr('result-screen');
 }
 
@@ -420,25 +487,42 @@ function showSurvey(){
     b.onclick=()=>{q0.querySelectorAll('.op-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q0=v;};
     q0.appendChild(b);
   });
-  // Q1 도움도
+  // Q1 도움도 (척도)
   const q1=document.getElementById('q1-wrap');q1.innerHTML='';
-  ['매우 불만족','불만족','보통','만족','매우 만족'].forEach(v=>{
-    const b=document.createElement('button');b.className='likert-btn';b.textContent=v;
-    b.onclick=()=>{q1.querySelectorAll('.likert-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q1=v;};
-    q1.appendChild(b);
+  const q1labels=['매우 불만족','불만족','보통','만족','매우 만족'];
+  const q1row=document.createElement('div');q1row.className='scale-row';
+  const q1left=document.createElement('span');q1left.className='scale-end';q1left.textContent='매우\n불만족';q1left.style.whiteSpace='pre-line';
+  const q1nums=document.createElement('div');q1nums.className='scale-nums';
+  const q1right=document.createElement('span');q1right.className='scale-end right';q1right.textContent='매우\n만족';q1right.style.whiteSpace='pre-line';
+  [1,2,3,4,5].forEach(n=>{
+    const b=document.createElement('button');b.className='scale-btn';b.textContent=n;
+    b.onclick=()=>{q1nums.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q1=q1labels[n-1];};
+    q1nums.appendChild(b);
   });
-  // Q2 추천도
+  q1row.appendChild(q1left);q1row.appendChild(q1nums);q1row.appendChild(q1right);
+  q1.appendChild(q1row);
+  // Q2 추천도 (척도)
   const q2=document.getElementById('q2-wrap');q2.innerHTML='';
-  ['매우 비추천','비추천','보통','추천','매우 추천'].forEach(v=>{
-    const b=document.createElement('button');b.className='nps-btn';b.textContent=v;
-    b.onclick=()=>{q2.querySelectorAll('.nps-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q2=v;};
-    q2.appendChild(b);
+  const q2labels=['매우 비추천','비추천','보통','추천','매우 추천'];
+  const q2row=document.createElement('div');q2row.className='scale-row';
+  const q2left=document.createElement('span');q2left.className='scale-end';q2left.textContent='매우\n비추천';q2left.style.whiteSpace='pre-line';
+  const q2nums=document.createElement('div');q2nums.className='scale-nums';
+  const q2right=document.createElement('span');q2right.className='scale-end right';q2right.textContent='매우\n추천';q2right.style.whiteSpace='pre-line';
+  [1,2,3,4,5].forEach(n=>{
+    const b=document.createElement('button');b.className='scale-btn';b.textContent=n;
+    b.onclick=()=>{q2nums.querySelectorAll('.scale-btn').forEach(x=>x.classList.remove('sel'));b.classList.add('sel');sv.q2=q2labels[n-1];};
+    q2nums.appendChild(b);
   });
+  q2row.appendChild(q2left);q2row.appendChild(q2nums);q2row.appendChild(q2right);
+  q2.appendChild(q2row);
   showScr('survey-screen');
 }
 
 async function submitSurvey(){
   sv.q3=document.getElementById('q3-txt').value;
+  if(!sv.q0){alert('운영 유형을 선택해주세요.');return;}
+  if(!sv.q1){alert('도움이 될 것 같은지 선택해주세요.');return;}
+  if(!sv.q2){alert('추천 여부를 선택해주세요.');return;}
   const btn=document.getElementById('sub-btn');btn.disabled=true;btn.textContent='저장 중...';
   const payload={action:'saveSurvey',scenario_month:SC.month,title:SC.title,score:sc,maxScore:maxSc,
     grade:document.getElementById('r-grade').textContent,answers:JSON.stringify(ans),
