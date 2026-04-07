@@ -276,29 +276,37 @@ let SC=null, st=0, sc=0, maxSc=0, ans=[], sv={q0:null,q1:null,q2:null,q3:''};
 
 window.addEventListener('load',()=>{
   const lo=document.getElementById('loading');
-  load().then(()=>{
-    lo.style.opacity='0';
-    setTimeout(()=>lo.style.display='none',400);
-  });
-  setTimeout(()=>{
-    if(lo.style.opacity!=='0'){lo.style.opacity='0';setTimeout(()=>lo.style.display='none',400);}
-  },800);
+  document.getElementById('app').style.display='flex';
+
+  if(!CFG.USE_SHEETS){
+    // 구글 시트 미사용: 즉시 시작
+    SC=DEMO; initGame();
+    lo.style.opacity='0'; setTimeout(()=>lo.style.display='none',300);
+    return;
+  }
+
+  // ① 데모로 즉시 시작 (로딩 없이 바로 게임)
+  SC=DEMO; initGame();
+  lo.style.opacity='0'; setTimeout(()=>lo.style.display='none',300);
+
+  // ② 백그라운드에서 구글 시트 로딩 → 완료되면 자동 교체
+  loadFromSheets();
 });
 
-async function load(){
-  document.getElementById('app').style.display='flex';
-  if(!CFG.USE_SHEETS){SC=DEMO;initGame();return;}
+async function loadFromSheets(){
   try{
     const controller=new AbortController();
-    const timeout=setTimeout(()=>controller.abort(),3000);
+    setTimeout(()=>controller.abort(),5000);
     const r=await fetch(CFG.SCRIPT_URL+'?action=getScenario',{signal:controller.signal});
-    clearTimeout(timeout);
     const d=await r.json();
-    if(d.success&&d.scenario){SC=d.scenario;}
-    else SC=DEMO;
-  }catch(e){SC=DEMO;}
-  initGame();
+    if(d.success&&d.scenario&&st===0&&!ans.length){
+      // 아직 게임 시작 안 했으면 시나리오 교체
+      SC=d.scenario; initGame();
+    }
+  }catch(e){}
 }
+
+async function load(){}
 
 function initGame(){
   document.getElementById('hdr-month').textContent=SC.month||'';
