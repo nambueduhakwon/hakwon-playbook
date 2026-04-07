@@ -282,6 +282,19 @@
       <div class="survey-q">4. 자유롭게 의견을 남겨주세요</div>
       <textarea class="survey-textarea" id="q3-txt" placeholder="느낀 점, 개선 의견, 추가로 다뤘으면 하는 상황 등..."></textarea>
     </div>
+    <div class="survey-card">
+      <div class="survey-q">5. 핸드폰 번호 <span style="font-size:0.78rem;font-weight:400;color:var(--text-dim)">(선택)</span></div>
+      <div style="font-size:0.78rem;color:var(--text-dim);margin-bottom:10px;line-height:1.5;">🎁 응답해 주신 분들 중 추첨을 통해 소정의 경품을 드립니다. 참여를 원하시면 번호를 남겨주세요!</div>
+      <input type="tel" id="q4-phone" placeholder="010-0000-0000" style="width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:11px 12px;color:var(--text);font-family:inherit;font-size:0.85rem;outline:none;box-sizing:border-box;" oninput="togglePrivacyConsent()" />
+    </div>
+    <div class="survey-card" id="privacy-card" style="display:none;">
+      <div class="survey-q">6. 개인정보 수집·이용 동의 <span style="font-size:0.78rem;font-weight:400;color:var(--danger)">* 필수</span></div>
+      <div style="font-size:0.76rem;color:var(--text-dim);background:var(--panel2);border-radius:8px;padding:11px 12px;margin-bottom:10px;line-height:1.6;">수집 항목: 핸드폰 번호 / 수집 목적: 경품 추첨 및 당첨자 연락 / 보유 기간: 경품 지급 완료 후 즉시 파기</div>
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.85rem;cursor:pointer;">
+        <input type="checkbox" id="q5-privacy" style="width:16px;height:16px;accent-color:var(--accent);" />
+        개인정보 수집·이용에 동의합니다
+      </label>
+    </div>
     <button class="survey-submit" id="sub-btn" onclick="submitSurvey()">제출하기</button>
   </div>
 
@@ -316,7 +329,7 @@
 // ══════════════════════════════════════
 const CFG = {
   // Google Apps Script 웹앱 URL (설정 가이드 참고)
-  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbzLUYhjeAs6kgLWbQU8_ererFgmon1WhJzbl4EZpQpzJr07PvFglQN4VdUqS_oL2y8/exec',
+  SCRIPT_URL: 'https://script.google.com/macros/s/AKfycby7hNZ1VHCH0PqJSP_rfVoECmAHku4nVFIEEPqbWWz9-L7whGb_w-YHUGK1XQw1hPAB/exec',
   // true: 구글 시트 연동 / false: 아래 DEMO 시나리오 사용
   USE_SHEETS: true,
 };
@@ -518,15 +531,22 @@ function showSurvey(){
   showScr('survey-screen');
 }
 
+function togglePrivacyConsent(){
+  const phone=document.getElementById('q4-phone').value.trim();
+  document.getElementById('privacy-card').style.display=phone?'block':'none';
+}
 async function submitSurvey(){
   sv.q3=document.getElementById('q3-txt').value;
+  sv.q4=document.getElementById('q4-phone').value.trim();
+  sv.q5=document.getElementById('q5-privacy').checked;
   if(!sv.q0){alert('운영 유형을 선택해주세요.');return;}
   if(!sv.q1){alert('도움이 될 것 같은지 선택해주세요.');return;}
   if(!sv.q2){alert('추천 여부를 선택해주세요.');return;}
+  if(sv.q4&&!sv.q5){alert('핸드폰 번호를 입력하신 경우 개인정보 수집·이용에 동의해주세요.');return;}
   const btn=document.getElementById('sub-btn');btn.disabled=true;btn.textContent='저장 중...';
   const payload={action:'saveSurvey',scenario_month:SC.month,title:SC.title,score:sc,maxScore:maxSc,
     grade:document.getElementById('r-grade').textContent,answers:JSON.stringify(ans),
-    q0:sv.q0,q1:sv.q1,q2:sv.q2,q3:sv.q3,submitted_at:new Date().toLocaleString('ko-KR')};
+    q0:sv.q0,q1:sv.q1,q2:sv.q2,q3:sv.q3,q4:sv.q4,q5:sv.q5,submitted_at:new Date().toLocaleString('ko-KR')};
   try{
     if(CFG.USE_SHEETS&&CFG.SCRIPT_URL.indexOf('YOUR_SCRIPT_ID')<0){
       await fetch(CFG.SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
