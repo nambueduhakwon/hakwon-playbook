@@ -226,9 +226,9 @@
 // ★ 설정 — 배포 전 여기만 수정하세요 ★
 // ══════════════════════════════════════
 const CFG = {
-  // Google Apps Script 웹앱 URL (설정 가이드 참고)
   SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwAk7idvba6p1q4PLhAFponc2jaxFrEGtMlPA7zGJXT5NcD_nFpGH9XUtiakXjoJJpE/exec',
   USE_SHEETS: true,
+  BASE_URL: 'https://nambueduhakwon.github.io/hakwon-playbook/',
 };
 
 // ══════════════════════════════════════
@@ -279,17 +279,19 @@ window.addEventListener('load',()=>{
   document.getElementById('app').style.display='flex';
 
   if(!CFG.USE_SHEETS){
-    // 구글 시트 미사용: 즉시 시작
     SC=DEMO; initGame();
-    lo.style.opacity='0'; setTimeout(()=>lo.style.display='none',300);
+    setTimeout(()=>{lo.style.opacity='0';setTimeout(()=>lo.style.display='none',300);},3000);
     return;
   }
 
-  // ① 데모로 즉시 시작 (로딩 없이 바로 게임)
-  SC=DEMO; initGame();
-  lo.style.opacity='0'; setTimeout(()=>lo.style.display='none',300);
+  // 데모로 즉시 앱 준비 (로딩 화면은 3초 유지)
+  SC=DEMO;
+  setTimeout(()=>{
+    lo.style.opacity='0';
+    setTimeout(()=>{lo.style.display='none'; initGame();},300);
+  },3000);
 
-  // ② 백그라운드에서 구글 시트 로딩 → 완료되면 자동 교체
+  // 백그라운드에서 구글 시트 로딩
   loadFromSheets();
 });
 
@@ -300,7 +302,6 @@ async function loadFromSheets(){
     const r=await fetch(CFG.SCRIPT_URL+'?action=getScenario',{signal:controller.signal});
     const d=await r.json();
     if(d.success&&d.scenario&&st===0&&!ans.length){
-      // 아직 게임 시작 안 했으면 시나리오 교체
       SC=d.scenario; initGame();
     }
   }catch(e){}
@@ -315,12 +316,18 @@ function initGame(){
   updSc();showScr('game-screen');render();
 }
 
+function imgSrc(name){
+  if(!name) return '';
+  if(name.startsWith('http')) return name;
+  return CFG.BASE_URL + name;
+}
+
 function render(){
   const s=SC.steps[st];
   if(!s){result();return;}
   document.getElementById('scene-step').textContent=`${st+1} / ${SC.steps.length}`;
   const img=document.getElementById('scene-img'),ph=document.getElementById('scene-ph');
-  if(s.image){img.src=s.image;ph.style.display='none';}
+  if(s.image){img.src=imgSrc(s.image);img.style.display='';ph.style.display='none';}
   else{img.style.display='none';ph.style.display='flex';}
   const loc=document.getElementById('scene-loc');
   loc.textContent=s.location||'';loc.style.display=s.location?'block':'none';
@@ -333,10 +340,8 @@ function render(){
     const nextS=SC.steps[st+1];
     typeText(document.getElementById('dtxt'),s.text,()=>{
       if(nextS&&nextS.type==='choice'){
-        // 다음 스텝 이미지로 교체
-        if(nextS.image){img.src=nextS.image;ph.style.display='none';}
+        if(nextS.image){img.src=imgSrc(nextS.image);img.style.display='';ph.style.display='none';}
         else{img.style.display='none';ph.style.display='flex';}
-        // 위치 태그도 교체
         if(nextS.location){loc.textContent=nextS.location;loc.style.display='block';}
         document.getElementById('spk').textContent='상황';
         document.getElementById('dtxt').textContent=s.text+'\n\n'+nextS.question;
@@ -353,7 +358,6 @@ function render(){
       }
     });
   } else {
-    // 질문 + 선택지 동시에 표시
     document.getElementById('spk').textContent='상황';
     document.getElementById('dtxt').textContent=s.question;
     const wrap=document.getElementById('choices');
