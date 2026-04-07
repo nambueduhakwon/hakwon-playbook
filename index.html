@@ -95,7 +95,7 @@
   .op-btn.sel{background:rgba(245,158,11,0.15);border-color:var(--accent);color:var(--accent);}
   .nps-scale{display:flex;gap:6px;flex-wrap:wrap;}
   .nps-btn{flex:1;min-width:80px;padding:9px 6px;background:var(--panel2);border:1px solid var(--border);border-radius:6px;cursor:pointer;font-size:0.75rem;font-weight:600;transition:all 0.15s;color:var(--text-dim);text-align:center;line-height:1.3;}
-  .nps-btn.sel{background:rgba(59,130,246,0.15);border-color:var(--accent2);color:var(--accent2);}
+  .nps-btn.sel{background:rgba(245,158,11,0.15);border-color:var(--accent);color:var(--accent);}
   .survey-input{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:12px;color:var(--text);font-family:inherit;font-size:0.88rem;outline:none;transition:border-color 0.2s;}
   .survey-input:focus{border-color:rgba(245,158,11,0.4);}
   .privacy-wrap{display:flex;align-items:flex-start;gap:10px;padding:12px 14px;background:var(--panel2);border:1px solid var(--border);border-radius:8px;cursor:pointer;}
@@ -275,22 +275,29 @@ const DEMO = {
 let SC=null, st=0, sc=0, maxSc=0, ans=[], sv={q0:null,q1:null,q2:null,q3:''};
 
 window.addEventListener('load',()=>{
-  setTimeout(()=>{
-    const lo=document.getElementById('loading');
+  const lo=document.getElementById('loading');
+  load().then(()=>{
     lo.style.opacity='0';
-    setTimeout(()=>{lo.style.display='none'; load();},500);
-  },1900);
+    setTimeout(()=>lo.style.display='none',400);
+  });
+  setTimeout(()=>{
+    if(lo.style.opacity!=='0'){lo.style.opacity='0';setTimeout(()=>lo.style.display='none',400);}
+  },800);
 });
 
 async function load(){
   document.getElementById('app').style.display='flex';
   if(!CFG.USE_SHEETS){SC=DEMO;initGame();return;}
   try{
-    const r=await fetch(CFG.SCRIPT_URL+'?action=getScenario');
+    const controller=new AbortController();
+    const timeout=setTimeout(()=>controller.abort(),3000);
+    const r=await fetch(CFG.SCRIPT_URL+'?action=getScenario',{signal:controller.signal});
+    clearTimeout(timeout);
     const d=await r.json();
-    if(d.success&&d.scenario){SC=d.scenario;initGame();}
-    else showErr(d.message||'등록된 시나리오가 없습니다.');
-  }catch(e){SC=DEMO;initGame();}
+    if(d.success&&d.scenario){SC=d.scenario;}
+    else SC=DEMO;
+  }catch(e){SC=DEMO;}
+  initGame();
 }
 
 function initGame(){
@@ -311,28 +318,42 @@ function render(){
   loc.textContent=s.location||'';loc.style.display=s.location?'block':'none';
   document.getElementById('fb-card').style.display='none';
   document.getElementById('next-btn').style.display='none';
-  if(s.type==='story')renderStory(s);else renderChoice(s);
-}
+  document.getElementById('choices').innerHTML='';
 
-function renderStory(s){
-  document.getElementById('spk').textContent=s.speaker||'나레이터';
-  typeText(document.getElementById('dtxt'),s.text,()=>{
-    document.getElementById('choices').innerHTML='';
-    const nb=document.getElementById('next-btn');nb.textContent='계속 ▶';nb.style.display='block';
-  });
-}
-
-function renderChoice(s){
-  document.getElementById('spk').textContent='선택';
-  document.getElementById('dtxt').textContent=s.question;
-  const wrap=document.getElementById('choices');wrap.innerHTML='';
-  s.choices.forEach((c,i)=>{
-    const b=document.createElement('button');
-    b.className='choice-btn fade-in';b.style.animationDelay=i*0.08+'s';
-    b.innerHTML=`<span class="choice-label">${c.label}</span><span>${c.text}</span>`;
-    b.onclick=()=>pick(c.correct,s.feedback,b,wrap);
-    wrap.appendChild(b);
-  });
+  if(s.type==='story'){
+    document.getElementById('spk').textContent=s.speaker||'나레이터';
+    // 다음 스텝이 choice면 선택지도 같이 표시
+    const nextS=SC.steps[st+1];
+    typeText(document.getElementById('dtxt'),s.text,()=>{
+      if(nextS&&nextS.type==='choice'){
+        // 질문을 dialog box 아래에 추가
+        document.getElementById('spk').textContent='상황';
+        document.getElementById('dtxt').textContent=s.text+'\n\n'+nextS.question;
+        const wrap=document.getElementById('choices');wrap.innerHTML='';
+        nextS.choices.forEach((c,i)=>{
+          const b=document.createElement('button');
+          b.className='choice-btn fade-in';b.style.animationDelay=i*0.08+'s';
+          b.innerHTML=`<span class="choice-label">${c.label}</span><span>${c.text}</span>`;
+          b.onclick=()=>{st++;pick(c.correct,nextS.feedback,b,wrap);};
+          wrap.appendChild(b);
+        });
+      } else {
+        const nb=document.getElementById('next-btn');nb.textContent='계속 ▶';nb.style.display='block';
+      }
+    });
+  } else {
+    // 질문 + 선택지 동시에 표시
+    document.getElementById('spk').textContent='상황';
+    document.getElementById('dtxt').textContent=s.question;
+    const wrap=document.getElementById('choices');
+    s.choices.forEach((c,i)=>{
+      const b=document.createElement('button');
+      b.className='choice-btn fade-in';b.style.animationDelay=i*0.08+'s';
+      b.innerHTML=`<span class="choice-label">${c.label}</span><span>${c.text}</span>`;
+      b.onclick=()=>pick(c.correct,s.feedback,b,wrap);
+      wrap.appendChild(b);
+    });
+  }
 }
 
 function pick(ok,fb,btn,wrap){
