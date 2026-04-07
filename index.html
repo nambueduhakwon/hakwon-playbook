@@ -322,11 +322,14 @@ function render(){
 
   if(s.type==='story'){
     document.getElementById('spk').textContent=s.speaker||'나레이터';
-    // 다음 스텝이 choice면 선택지도 같이 표시
     const nextS=SC.steps[st+1];
     typeText(document.getElementById('dtxt'),s.text,()=>{
       if(nextS&&nextS.type==='choice'){
-        // 질문을 dialog box 아래에 추가
+        // 다음 스텝 이미지로 교체
+        if(nextS.image){img.src=nextS.image;ph.style.display='none';}
+        else{img.style.display='none';ph.style.display='flex';}
+        // 위치 태그도 교체
+        if(nextS.location){loc.textContent=nextS.location;loc.style.display='block';}
         document.getElementById('spk').textContent='상황';
         document.getElementById('dtxt').textContent=s.text+'\n\n'+nextS.question;
         const wrap=document.getElementById('choices');wrap.innerHTML='';
